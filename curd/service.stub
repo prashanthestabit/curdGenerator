@@ -1,0 +1,23 @@
+<?php
+
+namespace {{ namespace }};
+use App\Models\{{ model }};
+
+class {{ class }}
+{
+    public function __construct()
+    {
+        //
+    }
+
+    public function store(array $data)
+    {
+        return {{ model }}::create($data);
+
+    }
+
+    public function update(array $data, $id)
+    {
+        return {{ model }}::whereId($id)->update($data);
+    }
+}

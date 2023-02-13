@@ -1,0 +1,136 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ namespacedModel }};
+use {{ rootNamespace }}Http\Controllers\Controller;
+use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Log;
+use Exception;
+use App\Services\{{ model }}Services;
+use Illuminate\Http\Request;
+
+
+class {{ class }} extends Controller
+{
+    protected ${{ modelVariable }};
+
+    public function __construct({{ model }}Services ${{ modelVariable }})
+    {
+        $this->{{ modelVariable }} =  ${{ modelVariable }};
+    }
+
+    /**
+     * Display a listing of the resource.
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function index(Request $request)
+    {
+          if ($request->ajax()) {
+            $data = {{ model }}::orderBy('id','desc');
+
+            return DataTables::of($data)
+            ->addIndexColumn()
+                ->addColumn('action', function($row){
+                    $btn = '<a href="'.route('admin.{{ modelVariable }}.edit',[$row->id]).'" class="btn btn-primary btn-sm">Edit</a>';
+                    $btn .= '&nbsp<a href="'.route('admin.{{ modelVariable }}.destroy',[$row->id]).'" class="btn btn-danger btn-delete-post btn-sm">Delete</a>';
+                    return $btn;
+                })
+                ->rawColumns(['action','content'])
+                ->make(true);
+        }
+
+        return view('admin.{{ modelVariable }}.index');
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        try{
+            return view('admin.{{ modelVariable }}.create');
+        }catch(Exception $e)
+        {
+            Log::error($e->getMessage());
+            return back()->with(['message' => __('global.server_error')]);
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        try{
+            ${{ modelVariable }} = $this->{{ modelVariable }}->store($request->validated());
+
+            return redirect()->route('admin.{{ modelVariable }}.index')->with(['message'=> "Successfully Store"]);
+        }catch(Exception $e)
+        {
+            Log::error($e->getMessage());
+            return back()->with(['message' => __('global.server_error')]);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \{{ namespacedModel }}  ${{ modelVariable }}
+     * @return \Illuminate\Http\Response
+     */
+    public function show({{ model }} ${{ modelVariable }})
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        ${{ modelVariable }} = {{ model }}::whereId($id)->first();
+        return view('admin.{{ modelVariable }}.create',['{{ modelVariable }}'=>${{ modelVariable }}]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \{{ namespacedModel }}  ${{ modelVariable }}
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        try{
+            ${{ modelVariable }} = $this->{{ modelVariable }}->update($request->validated(),$id);
+
+            return redirect()->route('admin.{{ modelVariable }}.index')->with(['message'=>"{{ model }} Updated Successfully"]);
+        }catch(Exception $e)
+        {
+            Log::error($e->getMessage());
+            return back()->with(['message' => __('global.server_error')]);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+         {{ model }}::whereId($id)->delete();
+         return response()->json(['status'=>true]);
+    }
+}
